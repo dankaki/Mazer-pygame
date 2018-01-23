@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import *
 
 pygame.init()
+finish_time = pygame.time.get_ticks() + 50000
 width = 640
 height = 480
 
@@ -64,8 +65,12 @@ class tank:
         if self.yf<=0 or self.yf>=height or self.xf<=0 or self.xf>=width: self.move_backward()
         if self.x3<=0 or self.x3>=width or self.y3<=0 or self.y3>=height: self.move_forward()
         if self.x4<=0 or self.x4>=width or self.y4<=0 or self.y4>=height: self.move_forward()
-        if self.x1<=0 or self.x1>=width or self.y1<=0 or self.y1>=height: self.rotate_right()
-        if self.x2<=0 or self.x2>=width or self.y2<=0 or self.y2>=height: self.rotate_left()
+        if self.x1<=0 or self.x1>=width or self.y1<=0 or self.y1>=height:
+            self.move_backward()
+            self.rotate_right()
+        if self.x2<=0 or self.x2>=width or self.y2<=0 or self.y2>=height:
+            self.move_backward()
+            self.rotate_left()
 
 
     def rotate_left(self):
@@ -181,6 +186,7 @@ bullets = []
 
 running = True
 while running:
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -238,9 +244,16 @@ while running:
         bullets[i].move()
     my_tank.check_frames()
     en_tank.check_frames()
+
     screen.fill(Color(255,255,255,255))
+
     for i in range(len(bullets)):
         bullets[i].display()
     en_tank.display()
     my_tank.display()
+
+    pygame.display.set_caption('Time untill break: '+str(int((finish_time - pygame.time.get_ticks())/1000)))
+    if pygame.time.get_ticks()>=finish_time:
+        screen.fill(Color(0,0,0,255))
+        running = False
     pygame.display.update()
