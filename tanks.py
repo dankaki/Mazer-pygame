@@ -11,7 +11,7 @@ rad2deg = 1.0 / deg2rad
 
 delta_time = 0
 
-friction_coefficient = 0.5
+friction_coefficient = 2.0
 gravity_coefficient = -9.81
 
 
@@ -49,8 +49,8 @@ class Tank:
     # angular_drag - Value that is used to slow down rotational movement
     # cannon_length - Length of cannon
 
-    def __init__(self, mass, color, key_tuple, width, height, def_rotation, def_position,
-                 acceleration, max_velocity, drag, cannon_length):
+    def __init__(self, mass, color, key_tuple, width, height, def_rotation, def_position, cannon_length,
+                 movement_force, turn_torque, max_velocity):
         self.mass = mass
         self.color = color
         self.key_tuple = key_tuple
@@ -59,26 +59,31 @@ class Tank:
         self.cannon_length = cannon_length
         self.rotation = def_rotation
         self.position = def_position
-        self.acceleration = acceleration
+        self.movement_force = movement_force
+        self.turn_torque = turn_torque
         self.max_velocity = max_velocity
-        self.drag = drag
-        self.angular_drag = angular_drag
+
+        self.force = vmath.Vector(0)
+        self.acceleration = vmath.Vector(0)
         self.velocity = vmath.Vector(0)
-        self.smoothVelocity = vmath.Vector(0)
 
     def update(self):
         key_pressed = pygame.key.get_pressed()
         if key_pressed[self.key_tuple[1]]:
-            self.velocity.y = self.max_velocity
+            self.force.y = self.movement_force
         elif key_pressed[self.key_tuple[0]]:
-            self.velocity.y = -self.max_velocity
+            self.force.y = -self.movement_force
         else:
-            self.velocity.y = 0
+            self.force.y = 0
 
-        print(self.smoothVelocity.y)
-        self.smoothVelocity.y = lerp(self.smoothVelocity.y, self.velocity.y, acceleration * delta_time)
+        self.force.add(self.velocity.get_normalized()
+                       .multiply(vmath.Vector(self.mass * gravity_coefficient * friction_coefficient)))
 
-        self.position.add(self.smoothVelocity.multiply_new(vmath.Vector(delta_time)))
+        self.acceleration = self.force.divide_new(vmath.Vector(self.mass))
+
+        self.velocity.add(self.acceleration.multiply(vmath.Vector(delta_time)))
+        self.position.add(self.velocity.multiply_new(vmath.Vector(delta_time)))
+
         self.draw()
 
     def add_position(self, vec):
@@ -135,7 +140,7 @@ max_speed = 1000
 cannon_length = 100
 
 # Configure tanks
-tank1 = Tank(mass, color, wasd_key_tuple, width, height, 0, vmath.Vector(100), acceleration, max_speed, drag, cannon_length)
+tank1 = Tank(mass, color, wasd_key_tuple, width, height, 0, vmath.Vector(100), cannon_length, 1000, 100, 100)
 
 # Previous frame tick - variable that is used to calculate deltaTime :
 #   DeltaTime is amount of milliseconds between rendering current frame and previous frame
