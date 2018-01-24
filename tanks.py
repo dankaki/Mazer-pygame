@@ -76,13 +76,22 @@ class Tank:
         else:
             self.force.y = 0
 
+        if key_pressed[self.key_tuple[3]]:
+            self.add_rotation(-self.turn_torque * delta_time)
+        elif key_pressed[self.key_tuple[2]]:
+            self.add_rotation(self.turn_torque * delta_time)
+
         self.force.add(self.velocity.get_normalized()
                        .multiply(vmath.Vector(self.mass * gravity_coefficient * friction_coefficient)))
 
         self.acceleration = self.force.divide_new(vmath.Vector(self.mass))
 
         self.velocity.add(self.acceleration.multiply(vmath.Vector(delta_time)))
-        self.position.add(self.velocity.multiply_new(vmath.Vector(delta_time)))
+
+        if self.velocity.get_magnitude() > self.max_velocity:
+            self.velocity = self.velocity.get_normalized().multiply(vmath.Vector(self.max_velocity))
+
+        self.position.add(self.velocity.multiply_new(vmath.Vector(delta_time)).rotate(self.rotation * deg2rad))
 
         self.draw()
 
@@ -130,7 +139,7 @@ mass = 10
 color = (255, 255, 255)
 width = 50
 height = 50
-wasd_key_tuple = (pygame.K_w, pygame.K_s, pygame.K_l, pygame.K_r, pygame.K_f)
+wasd_key_tuple = (pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a, pygame.K_f)
 acceleration = 10
 turn_acceleration = 10.0
 drag = 10.0
