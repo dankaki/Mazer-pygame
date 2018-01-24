@@ -49,7 +49,7 @@ class Tank:
     # angular_drag - Value that is used to slow down rotational movement
     # cannon_length - Length of cannon
 
-    def __init__(self, mass, color, key_tuple, width, height, def_rotation, def_position, cannon_length,
+    def __init__(self, mass, color, key_tuple, width, height, def_rotation, def_position, cannon_width, cannon_length,
                  movement_force, turn_torque, max_velocity):
         self.mass = mass
         self.color = color
@@ -57,6 +57,7 @@ class Tank:
         self.width = width
         self.height = height
         self.cannon_length = cannon_length
+        self.cannon_width = cannon_width
         self.rotation = def_rotation
         self.position = def_position
         self.movement_force = movement_force
@@ -126,9 +127,30 @@ class Tank:
         # Convert vectors into array of tuples (positions)
         return [point1.to_tuple(), point2.to_tuple(), point3.to_tuple(), point4.to_tuple()]
 
+    def get_vertices_cannon(self):
+        # Calculate half of width and half of height used to simplify further processes
+        half_width = self.cannon_width / 2
+        half_height = self.cannon_length / 2
+
+        # Some math used to rotate square around its center
+        point1 = vmath.Vector(-half_width, 0).rotate(self.rotation * deg2rad)
+        point2 = vmath.Vector(half_width, 0).rotate(self.rotation * deg2rad)
+        point3 = vmath.Vector(half_width, -self.cannon_length).rotate(self.rotation * deg2rad)
+        point4 = vmath.Vector(-half_width, -self.cannon_length).rotate(self.rotation * deg2rad)
+
+        # Add back our position
+        point1.add(self.position)
+        point2.add(self.position)
+        point3.add(self.position)
+        point4.add(self.position)
+
+        # Convert vectors into array of tuples (positions)
+        return [point1.to_tuple(), point2.to_tuple(), point3.to_tuple(), point4.to_tuple()]
+
     def draw(self):
         # Draw polygon
         pygame.draw.polygon(screen, self.color, self.get_vertices(), 0)
+        pygame.draw.polygon(screen, (255, 255, 255), self.get_vertices_cannon(), 0)
 
 
 # Initialize PyGame
@@ -136,9 +158,9 @@ pygame.init()
 DONE = False
 
 mass = 10
-color = (255, 255, 255)
+color = (255, 0, 0)
 width = 50
-height = 50
+height = 80
 wasd_key_tuple = (pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a, pygame.K_f)
 acceleration = 10
 turn_acceleration = 10.0
@@ -146,10 +168,12 @@ drag = 10.0
 angular_drag = 10.0
 
 max_speed = 1000
-cannon_length = 100
+cannon_width = 15
+cannon_length = 75
 
 # Configure tanks
-tank1 = Tank(mass, color, wasd_key_tuple, width, height, 0, vmath.Vector(100), cannon_length, 1000, 100, 100)
+tank1 = Tank(mass, color, wasd_key_tuple, width, height, 0, vmath.Vector(100),
+             cannon_width, cannon_length, 1000, 100, 100)
 
 # Previous frame tick - variable that is used to calculate deltaTime :
 #   DeltaTime is amount of milliseconds between rendering current frame and previous frame
