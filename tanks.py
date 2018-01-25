@@ -59,6 +59,7 @@ class Tank:
         self.cannon_length = cannon_length
         self.cannon_width = cannon_width
         self.rotation = def_rotation
+        self.desired_rotation = def_rotation
         self.position = def_position
         self.movement_force = movement_force
         self.turn_torque = turn_torque
@@ -130,7 +131,6 @@ class Tank:
     def get_vertices_cannon(self):
         # Calculate half of width and half of height used to simplify further processes
         half_width = self.cannon_width / 2
-        half_height = self.cannon_length / 2
 
         # Some math used to rotate square around its center
         point1 = vmath.Vector(-half_width, 0).rotate(self.rotation * deg2rad)
@@ -150,7 +150,7 @@ class Tank:
     def draw(self):
         # Draw polygon
         pygame.draw.polygon(screen, self.color, self.get_vertices(), 0)
-        pygame.draw.polygon(screen, (255, 255, 255), self.get_vertices_cannon(), 0)
+        pygame.draw.polygon(screen, self.color, self.get_vertices_cannon(), 0)
 
 
 # Initialize PyGame
@@ -158,22 +158,25 @@ pygame.init()
 DONE = False
 
 mass = 10
-color = (255, 0, 0)
+color1 = (255, 0, 0)
+color2 = (0, 0, 255)
 width = 50
 height = 80
 wasd_key_tuple = (pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a, pygame.K_f)
-acceleration = 10
-turn_acceleration = 10.0
-drag = 10.0
-angular_drag = 10.0
+arrow_key_tuple = (pygame.K_UP, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_LEFT, pygame.K_SLASH)
 
-max_speed = 1000
-cannon_width = 15
+force = 1000
+torque = 100
+max_velocity = 100
+cannon_width = 10
 cannon_length = 75
 
 # Configure tanks
-tank1 = Tank(mass, color, wasd_key_tuple, width, height, 0, vmath.Vector(100),
-             cannon_width, cannon_length, 1000, 100, 100)
+tank1 = Tank(mass, color1, wasd_key_tuple, width, height, 0, vmath.Vector(100),
+             cannon_width, cannon_length, force, torque, max_velocity)
+
+tank2 = Tank(mass, color2, arrow_key_tuple, width, height, 180, vmath.Vector(100, 0),
+             cannon_width, cannon_length, force, torque, max_velocity)
 
 # Previous frame tick - variable that is used to calculate deltaTime :
 #   DeltaTime is amount of milliseconds between rendering current frame and previous frame
@@ -197,6 +200,7 @@ while not DONE:
 
     # User-defined code
     tank1.update()
+    tank2.update()
 
     # Update screen
     pygame.display.update()
